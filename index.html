@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Launcher</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="icon" type="image/png" href="favicon.PNG">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<style>
+html, body { height: 100%; }
+body {
+  font-family: 'Poppins', sans-serif;
+  -webkit-user-select: none; -ms-user-select: none; user-select: none;
+  background: linear-gradient(-45deg, #1e3a8a, #3b82f6, #6366f1, #8b5cf6, #7c3aed, #5b21b6, #4c1d95);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+  position: relative; overflow-x: hidden; will-change: background-position;
+}
+body::before {
+  content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.15), transparent 50%),
+              radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.15), transparent 50%),
+              radial-gradient(circle at 40% 20%, rgba(168, 85, 247, 0.1), transparent 50%);
+  pointer-events: none; animation: float 15s ease-in-out infinite;
+}
+
+::-webkit-scrollbar { display: none; }
+html { scrollbar-width: none; -ms-overflow-style: none; }
+
+.beta-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  padding: 3px 8px;
+  margin-left: 8px;
+  font-size: 0.65rem;
+  border-radius: 6px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #fff;
+  text-transform: uppercase;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 10px rgba(139, 92, 246, 0.4);
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+  animation: pulse-glow 3s infinite;
+}
+
+.popular-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  padding: 3px 8px;
+  margin-left: 8px;
+  font-size: 0.65rem;
+  border-radius: 6px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #fff;
+  text-transform: uppercase;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+  animation: pulse-glow 3s infinite;
+}
+
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(139, 92, 246, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.header-controls {
+  position: fixed; top: 1.5rem; width: 100%; padding: 0 1.5rem;
+  display: flex; justify-content: flex-start; align-items: flex-start;
+  z-index: 60; pointer-events: none;
+}
+.control-group { pointer-events: auto; position: relative; }
+
+.glass-btn {
+  padding: 8px 16px;
+  height: auto;
+  border-radius: 9999px;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: #e2e8f0;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  cursor: pointer; transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  font-weight: 600; font-size: 0.95rem;
+}
+.glass-btn:hover, .glass-btn.active {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(139, 92, 246, 0.8));
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: white;
+}
+.glass-icon { transition: transform 0.3s ease; }
+.glass-btn.active .glass-icon { transform: rotate(180deg); }
+
+.glass-dropdown {
+  position: absolute; top: 120%; width: 220px;
+  background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(15px);
+  border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 1rem; padding: 0.5rem;
+  opacity: 0; visibility: hidden; transform: translateY(-10px);
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  left: 0;
+}
+
+.glass-dropdown.show { opacity: 1; visibility: visible; transform: translateY(0); }
+
+.dropdown-item {
+  display: flex; align-items: center; gap: 12px; padding: 10px 15px;
+  border-radius: 0.75rem; cursor: pointer; color: #cbd5e1;
+  transition: all 0.2s ease; font-weight: 500; font-size: 0.9rem;
+}
+.dropdown-item:hover { background: rgba(139, 92, 246, 0.2); color: white; transform: translateX(5px); }
+
+@keyframes cardAppear {
+  from { opacity: 0; transform: translateY(40px) scale(0.9); filter: blur(10px); }
+  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+.game-card {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, opacity 0.3s ease;
+  position: relative; overflow: hidden;
+  backdrop-filter: blur(20px) saturate(180%);
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(51, 65, 85, 0.8));
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  animation: cardAppear 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+.game-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 80px rgba(139, 92, 246, 0.4);
+  border-color: rgba(139, 92, 246, 0.6);
+  z-index: 10;
+}
+
+.launch-button {
+  position: relative; z-index: 10; overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6, #a855f7);
+  background-size: 200% 200%;
+  transform-origin: center;
+}
+.launch-button:hover {
+  box-shadow: 0 10px 25px rgba(139, 92, 246, 0.6), 0 0 0 4px rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px) scale(1.05);
+  background-position: right center;
+  letter-spacing: 1px;
+}
+.launch-button:active { transform: scale(0.95); }
+
+.card-actions { position: absolute; top: 1rem; right: 1rem; display: flex; gap: 0.5rem; z-index: 5; }
+.action-btn { cursor: pointer; transition: transform 0.2s ease, opacity 0.3s ease; opacity: 0; }
+.game-card:hover .action-btn { opacity: 0.7; }
+.favorite-btn.is-favorite { opacity: 1 !important; filter: drop-shadow(0 0 12px rgba(248, 113, 113, 0.8)); }
+.action-btn:hover { opacity: 1 !important; transform: scale(1.2) rotate(5deg); }
+.action-btn svg { width: 24px; height: 24px; stroke: #e5e7eb; stroke-width: 2; fill: none; }
+.favorite-btn.is-favorite svg { fill: #f87171; stroke: #fca5a5; }
+
+.last-game-badge {
+  position: absolute; top: 1rem; left: 1rem;
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.5);
+  border-radius: 50%; width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+  animation: spinSlow 10s linear infinite;
+}
+@keyframes spinSlow { to { transform: rotate(360deg); } }
+
+#unhide-btn {
+  opacity: 0; transform: translate(-50%, 20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none; padding: 0.75rem 2rem; border-radius: 9999px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(139, 92, 246, 0.25));
+  border: 1px solid rgba(139, 92, 246, 0.4); backdrop-filter: blur(15px);
+  font-weight: 600; z-index: 50; margin-bottom: 50px;
+}
+#unhide-btn.is-visible { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+
+.game-card h3 { text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); }
+.game-card p { text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); }
+</style>
+</head>
+<body class="text-white flex flex-col min-h-screen">
+
+  <div class="header-controls">
+    <div class="control-group">
+      <div id="translate-btn" class="glass-btn">
+        <span id="current-flag" class="text-xl">🇫🇷</span>
+        <span id="current-lang-text" class="hidden sm:inline">Français</span>
+        <i class="ph ph-caret-down glass-icon"></i>
+      </div>
+      <div id="lang-dropdown" class="glass-dropdown">
+        <div class="dropdown-item" data-lang="fr"><span class="text-2xl">🇫🇷</span> <span>Français</span></div>
+        <div class="dropdown-item" data-lang="en"><span class="text-2xl">🇺🇸</span> <span>English</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="home-view" class="flex-grow pt-24">
+    <main class="container mx-auto px-6 py-4 pb-20">
+      <div id="game-list" class="flex flex-wrap gap-10 justify-center"></div>
+    </main>
+  </div>
+
+  <button id="unhide-btn" class="fixed bottom-6 left-1/2 transform -translate-x-1/2"></button>
+
+  <footer class="fixed bottom-0 left-0 right-0 flex justify-center p-3" style="z-index: 40;">
+    <div class="text-center py-2 px-6 text-gray-300 text-base font-semibold rounded-full" style="background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(139, 92, 246, 0.2);">
+      <p id="footer-copy">© Launcher - XAYWOX</p>
+    </div>
+  </footer>
+
+<script>
+const gameListContainer = document.getElementById('game-list');
+const unhideBtn = document.getElementById('unhide-btn');
+const translateBtn = document.getElementById('translate-btn');
+const langDropdown = document.getElementById('lang-dropdown');
+const currentFlagSpan = document.getElementById('current-flag');
+const currentLangTextSpan = document.getElementById('current-lang-text');
+const footerCopy = document.getElementById('footer-copy');
+
+function safeParseArray(key){
+  try {
+    const v = JSON.parse(localStorage.getItem(key));
+    return Array.isArray(v) ? v : [];
+  } catch (e) { return []; }
+}
+
+const gameData = [
+  { id: 'ant', url: "https://ant-colonizer.netlify.app/", icon: '🐜'},
+  { id: 'axolotl', url: "https://axolotl-clicker.netlify.app/", icon: '<img src="https://i.imgur.com/3ElK6Vy.png" class="w-28 h-28">'},
+  { id: 'youtuber', url: "https://youtuber-tycoon.netlify.app/", icon: '🎬'},
+  { id: 'egg', url: "https://egg-collector.netlify.app/", icon: '🥚'},
+  { id: 'phone', url: "https://phone-creator.netlify.app/", icon: '📱'},
+  { id: 'city', url: "https://city-builder-simulator.netlify.app/", icon: '🏙️'},
+  { id: 'tower', url: "https://tower-defense-xaywox.netlify.app/", icon: '<img src="image1.png" class="w-28 h-28" onerror="this.onerror=null;this.src=\'https://placehold.co/100x100?text=TD\'">'},
+  { id: 'dino', url: "https://dinopark-tycoon.netlify.app/", icon: '🦖'},
+  { id: 'pokexay', url: "https://pokexay.netlify.app", icon: '<svg viewBox="0 0 100 100" class="w-28 h-28 drop-shadow-lg"><defs><linearGradient id="pokeGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" /><stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" /></linearGradient></defs><circle cx="50" cy="50" r="45" fill="white" stroke="#1f2937" stroke-width="4"/><path d="M5,50 A45,45 0 0,1 95,50" fill="url(#pokeGradient)" stroke="none"/><line x1="5" y1="50" x2="95" y2="50" stroke="#1f2937" stroke-width="4"/><circle cx="50" cy="50" r="45" fill="none" stroke="#1f2937" stroke-width="4"/><circle cx="50" cy="50" r="12" fill="white" stroke="#1f2937" stroke-width="4"/><circle cx="50" cy="50" r="6" fill="#1f2937" opacity="0.2"/></svg>'}
+];
+
+const translations = {
+  fr: {
+    launchButton: "Jouer", copyright: "© Launcher - By XAYWOX", unhide: "Afficher les jeux cachés",
+    actionFavorite: "Basculer favori", actionHide: "Cacher le jeu", allHidden: "Tous les jeux sont cachés",
+    langName: "Français", flag: "🇫🇷",
+    games: {
+      ant: { title: "Ant Colonizer", description: "Construis ta fourmilière et défends-la." },
+      axolotl: { title: "Axolotl Clicker", description: "Clique, améliore et deviens le #1 au classement." },
+      youtuber: { title: "Youtuber Tycoon", description: "Commence à 0 abonnés et deviens le n°1." },
+      egg: { title: "Egg Collector", description: "Collectionne tous les œufs de l'eggodex." },
+      phone: { title: "Phone Creator <span class='beta-badge'>BETA</span>", description: "Crée le meilleur téléphone." },
+      city: { title: "City Builder Simulator", description: "Construis la ville de tes rêves." },
+      dino: { title: "DINOPARK Tycoon <span class='beta-badge'>BETA</span>", description: "Gère ton parc de dinosaures." },
+      tower: { title: "Tower Defense <span class='popular-badge'>POPULAIRE</span>", description: "Protège ta base coûte que coûte." },
+      pokexay: { title: "PokéXay <span class='beta-badge'>BETA</span>", description: "Attrapez les tous !" }
+    }
+  },
+  en: {
+    launchButton: "Play", copyright: "© Launcher - By XAYWOX", unhide: "Show hidden games",
+    actionFavorite: "Toggle favorite", actionHide: "Hide game", allHidden: "All games are hidden",
+    langName: "English", flag: "🇺🇸",
+    games: {
+      ant: { title: "Ant Colonizer", description: "Build your anthill and defend it." },
+      axolotl: { title: "Axolotl Clicker", description: "Click, upgrade, and become #1." },
+      youtuber: { title: "Youtuber Tycoon", description: "Start with 0 and become number 1." },
+      egg: { title: "Egg Collector", description: "Collect all the eggs." },
+      phone: { title: "Phone Creator <span class='beta-badge'>BETA</span>", description: "Create the best phone." },
+      city: { title: "City Builder Simulator", description: "Create the city of your dreams." },
+      dino: { title: "DINOPARK Tycoon <span class='beta-badge'>BETA</span>", description: "Manage your park." },
+      tower: { title: "Tower Defense <span class='popular-badge'>POPULAR</span>", description: "Defend your base." },
+      pokexay: { title: "PokéXay <span class='beta-badge'>BETA</span>", description: "Catch them all!" }
+    }
+  }
+};
+
+let currentLang = localStorage.getItem('gameLang') || 'fr';
+let favorites = safeParseArray('gameFavorites');
+let hiddenGames = safeParseArray('gameHidden');
+
+function saveFavorites() { localStorage.setItem('gameFavorites', JSON.stringify(favorites)); }
+function saveHiddenGames() { localStorage.setItem('gameHidden', JSON.stringify(hiddenGames)); }
+
+function getSortedGames(gamesList) {
+  return [...gamesList].sort((a, b) => {
+    const isFavA = favorites.includes(a.id);
+    const isFavB = favorites.includes(b.id);
+    if (isFavA !== isFavB) return isFavB - isFavA;
+    return gameData.indexOf(a) - gameData.indexOf(b);
+  });
+}
+
+function displayContent(lang, noAnimation = false) {
+  const texts = translations[lang] || translations.fr;
+  unhideBtn.textContent = texts.unhide;
+  currentFlagSpan.textContent = texts.flag;
+  currentLangTextSpan.textContent = texts.langName;
+  footerCopy.textContent = texts.copyright;
+
+  const visibleGames = gameData.filter(game => !hiddenGames.includes(game.id));
+  const sortedGames = getSortedGames(visibleGames);
+
+  gameListContainer.innerHTML = '';
+
+  if (sortedGames.length === 0 && gameData.length > 0) {
+    const noGamesMessage = document.createElement('div');
+    noGamesMessage.className = 'text-center text-gray-300 text-2xl font-semibold mt-10 p-6 rounded-xl bg-slate-800/70 border border-purple-500/30';
+    noGamesMessage.textContent = texts.allHidden;
+    gameListContainer.appendChild(noGamesMessage);
+  } else {
+    sortedGames.forEach((game, index) => {
+      const gameTexts = texts.games[game.id] || { title: game.id, description: '' };
+      const isFavorite = favorites.includes(game.id);
+
+      const card = document.createElement('div');
+      card.className = 'game-card rounded-xl overflow-hidden shadow-lg p-6 flex flex-col items-center text-center w-full max-w-md';
+      card.dataset.gameId = game.id;
+      if(!noAnimation) card.style.animationDelay = `${index * 0.1}s`;
+      else card.style.animation = 'none';
+
+      const isLastGame = (game.id === 'pokexay');
+      const lastGameBadgeHTML = isLastGame ? `<div class="last-game-badge" title="Dernier Jeu"><i class="ph ph-sparkle-fill"></i></div>` : '';
+
+      card.innerHTML = `
+        ${lastGameBadgeHTML}
+        <div class="card-actions">
+          <div class="action-btn favorite-btn ${isFavorite ? 'is-favorite' : ''}" data-action="favorite" data-game-id="${game.id}">
+            <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg>
+          </div>
+          <div class="action-btn hide-btn" data-action="hide" data-game-id="${game.id}">
+            <svg viewBox="0 0 24 24"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>
+          </div>
+        </div>
+        <div class="h-28 w-28 mb-4 flex items-center justify-center text-7xl">${game.icon}</div>
+        <h3 class="text-2xl font-bold mb-2 flex items-center justify-center gap-2 w-full">${gameTexts.title}</h3>
+        <p class="text-gray-300 mb-6 flex-grow">${gameTexts.description}</p>
+        <a href="${game.url}" target="_blank" rel="noopener noreferrer" class="launch-button mt-auto block w-full text-white font-semibold py-3 px-6 rounded-full">${texts.launchButton}</a>
+      `;
+      gameListContainer.appendChild(card);
+    });
+  }
+  unhideBtn.classList.toggle('is-visible', hiddenGames.length > 0);
+}
+
+gameListContainer.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const { action, gameId } = btn.dataset;
+  if (action === 'favorite') {
+    const idx = favorites.indexOf(gameId);
+    if (idx > -1) favorites.splice(idx, 1); else favorites.push(gameId);
+    saveFavorites();
+    displayContent(currentLang, true); 
+  } else if (action === 'hide') {
+    const card = btn.closest('.game-card');
+    card.style.transform = 'scale(0.8) translateY(20px)';
+    card.style.opacity = '0';
+    setTimeout(() => {
+      hiddenGames.push(gameId);
+      saveHiddenGames();
+      displayContent(currentLang, true);
+    }, 300);
+  }
+});
+
+unhideBtn.addEventListener('click', () => {
+  hiddenGames = [];
+  saveHiddenGames();
+  displayContent(currentLang);
+});
+
+translateBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  langDropdown.classList.toggle('show');
+  translateBtn.classList.toggle('active');
+});
+
+document.querySelectorAll('#lang-dropdown .dropdown-item').forEach(item => {
+  item.addEventListener('click', () => {
+    currentLang = item.dataset.lang;
+    localStorage.setItem('gameLang', currentLang);
+    displayContent(currentLang);
+    langDropdown.classList.remove('show');
+    translateBtn.classList.remove('active');
+  });
+});
+
+document.addEventListener('click', () => {
+  langDropdown.classList.remove('show');
+  translateBtn.classList.remove('active');
+});
+
+document.addEventListener('DOMContentLoaded', () => displayContent(currentLang));
+</script>
+</body>
+</html>
